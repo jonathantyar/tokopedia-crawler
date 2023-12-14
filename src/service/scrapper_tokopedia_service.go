@@ -27,10 +27,12 @@ type ScrapperServiceTokopedia struct {
 	Filename          string
 	Product           []model.Product
 	ProductRepository repository.ProductRepository
+	Limit             uint64
 }
 
 // HandleScraping implements ScrapperServiceInterface.
 func (s *ScrapperServiceTokopedia) HandleScraping(ctx context.Context, cfg Config) {
+	s.Limit = cfg.SizePool
 	s.Category = cfg.Url
 	s.Filename = fmt.Sprintf("%v", time.Now().Unix())
 
@@ -140,7 +142,7 @@ func (s *ScrapperServiceTokopedia) GetData(jsonFile string, page int, total uint
 	}
 
 	worker := 0
-	limiter := make(chan int, 5)
+	limiter := make(chan int, s.Limit)
 	for _, product := range productAce.Products {
 		limiter <- 1
 		go func(p Product) {
